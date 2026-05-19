@@ -1,0 +1,546 @@
+:root {
+  color-scheme: light;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #17211d;
+  background: #f7f8f5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --ink: #17211d;
+  --muted: #66746e;
+  --line: #dce4dd;
+  --line-strong: #c7d4cc;
+  --panel: #ffffff;
+  --panel-subtle: #f4f7f2;
+  --teal: #237b6c;
+  --teal-dark: #155f54;
+  --mint: #e6f2ee;
+  --amber: #c87922;
+  --red: #b5483c;
+  --shadow: 0 14px 40px rgba(28, 51, 43, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.appShell {
+  display: grid;
+  grid-template-columns: 276px 1fr;
+  min-height: 100vh;
+  background:
+    linear-gradient(90deg, #eef4ef 0, #eef4ef 276px, transparent 276px),
+    #f7f8f5;
+}
+
+.chapterRail {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-height: 100vh;
+  padding: 24px 18px;
+  border-right: 1px solid var(--line);
+}
+
+.railHeader,
+.topBar,
+.liveHeader,
+.sectionHeading,
+.segmentMeta,
+.audioRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.railHeader p,
+.titleBlock p,
+.sectionHeading p,
+.chapterItem small,
+.segmentMeta,
+.localNotice,
+.cleanPreview p {
+  color: var(--muted);
+}
+
+.railHeader p,
+.titleBlock p,
+.sectionHeading p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.railHeader h1 {
+  margin: 2px 0 0;
+  color: var(--ink);
+  font-size: 26px;
+  font-weight: 760;
+  letter-spacing: 0;
+}
+
+.iconButton,
+.playButton {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--teal-dark);
+  background: var(--panel);
+}
+
+.chapterList {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+}
+
+.chapterItem {
+  display: grid;
+  grid-template-columns: 34px 1fr 18px;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 68px;
+  padding: 10px;
+  text-align: left;
+  color: var(--ink);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.chapterItem:hover,
+.chapterItem.active {
+  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.chapterItem.active {
+  box-shadow: 0 8px 22px rgba(30, 92, 80, 0.08);
+}
+
+.chapterIcon {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: var(--teal-dark);
+  border-radius: 8px;
+  background: var(--mint);
+}
+
+.chapterItem strong,
+.chapterItem small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chapterItem strong {
+  font-size: 15px;
+  font-weight: 680;
+}
+
+.chapterItem small {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.localNotice {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+  padding: 24px;
+  gap: 18px;
+}
+
+.topBar {
+  gap: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: var(--shadow);
+}
+
+.titleBlock {
+  min-width: 240px;
+}
+
+.chapterTitleInput {
+  width: min(520px, 100%);
+  padding: 0;
+  font-size: 28px;
+  font-weight: 760;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.secondaryButton,
+.recordButton,
+.exportButton {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 13px;
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+  border-radius: 8px;
+}
+
+.secondaryButton {
+  color: var(--ink);
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.recordButton {
+  color: #fff;
+  border: 1px solid var(--teal-dark);
+  background: var(--teal);
+}
+
+.recordButton.active {
+  border-color: #8d372f;
+  background: var(--red);
+}
+
+.exportButton {
+  color: #fff;
+  border: 1px solid #1b4f47;
+  background: #1f635a;
+}
+
+.livePanel,
+.segmentsPanel,
+.editorPanel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.livePanel {
+  padding: 16px 18px;
+}
+
+.liveHeader {
+  margin-bottom: 12px;
+}
+
+.liveHeader > div:first-child {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 15px;
+}
+
+.recordDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #aebbb5;
+}
+
+.recordDot.on {
+  background: var(--amber);
+  box-shadow: 0 0 0 5px rgba(200, 121, 34, 0.15);
+}
+
+.meter {
+  display: grid;
+  grid-template-columns: repeat(16, 4px);
+  gap: 3px;
+  align-items: end;
+  height: 28px;
+}
+
+.meter span {
+  display: block;
+  height: 24px;
+  border-radius: 4px;
+  transform-origin: bottom;
+  background: linear-gradient(#c87922, #237b6c);
+}
+
+.partialText {
+  min-height: 74px;
+  padding: 16px;
+  color: #21342e;
+  font-size: clamp(20px, 2vw, 28px);
+  font-weight: 620;
+  line-height: 1.55;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-subtle);
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 18px;
+  min-height: 0;
+}
+
+.segmentsPanel,
+.editorPanel {
+  min-width: 0;
+  padding: 16px;
+}
+
+.sectionHeading {
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.sectionHeading h2 {
+  margin: 0 0 3px;
+  font-size: 18px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.segmentList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 294px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.segmentCard {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.segmentMeta {
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.segmentMeta span:first-child {
+  color: var(--teal-dark);
+  font-weight: 720;
+}
+
+.audioRow {
+  gap: 10px;
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
+
+.playButton {
+  flex: 0 0 auto;
+  color: #fff;
+  border-color: var(--teal);
+  background: var(--teal);
+}
+
+audio {
+  width: min(420px, 100%);
+  height: 34px;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+}
+
+label span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 86px;
+  padding: 10px 12px;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.65;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: 0;
+  background: #fbfcfa;
+}
+
+textarea:focus,
+.chapterTitleInput:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(35, 123, 108, 0.12);
+}
+
+.emptyState {
+  display: grid;
+  place-items: center;
+  min-height: 320px;
+  padding: 36px;
+  text-align: center;
+  color: var(--muted);
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  background: var(--panel-subtle);
+}
+
+.emptyState strong {
+  margin-top: 10px;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.emptyState p {
+  max-width: 280px;
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.cleanPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 294px);
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfa;
+}
+
+.cleanPreview p {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+@media (max-width: 980px) {
+  .appShell {
+    grid-template-columns: 1fr;
+    background: #f7f8f5;
+  }
+
+  .chapterRail {
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .chapterList {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .chapterItem {
+    min-width: 220px;
+  }
+
+  .topBar,
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .topBar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .toolbar {
+    justify-content: flex-start;
+  }
+
+  .segmentList,
+  .cleanPreview {
+    max-height: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .chapterRail,
+  .workspace {
+    padding: 16px;
+  }
+
+  .chapterTitleInput {
+    font-size: 22px;
+  }
+
+  .toolbar {
+    width: 100%;
+  }
+
+  .secondaryButton,
+  .recordButton,
+  .exportButton {
+    flex: 1 1 calc(50% - 8px);
+    justify-content: center;
+  }
+
+  .partialText {
+    font-size: 20px;
+  }
+}

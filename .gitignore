@@ -1,0 +1,24 @@
+node_modules/
+dist/
+.vite/
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.pyc
+
+# Local memoir data. Keep family recordings and transcripts off public GitHub.
+data/
+models/
+exports/
+*.wav
+*.mp3
+*.m4a
+*.flac
+
+.env
+.DS_Store
+._*
+npm-debug.log*
