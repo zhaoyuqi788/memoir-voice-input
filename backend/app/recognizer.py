@@ -51,55 +51,20 @@ class SherpaOnlineRecognizer(BaseRecognizer):
         self.model_dir = model_dir
         model_file = next(model_dir.glob("*int8*.onnx"), None) or next(model_dir.glob("*.onnx"))
         tokens = model_dir / "tokens.txt"
-        bpe_vocab = model_dir / "bbpe.model"
-
-        model_config_kwargs = {
-            "transducer": sherpa_onnx.OnlineTransducerModelConfig(encoder="", decoder="", joiner=""),
-            "paraformer": sherpa_onnx.OnlineParaformerModelConfig(encoder="", decoder=""),
-            "zipformer2_ctc": sherpa_onnx.OnlineZipformer2CtcModelConfig(model=str(model_file)),
-            "tokens": str(tokens),
-            "num_threads": settings.sherpa_num_threads,
-            "debug": False,
-            "model_type": "",
-        }
-        if bpe_vocab.exists():
-            model_config_kwargs["bpe_vocab"] = str(bpe_vocab)
-
-        try:
-            model_config = sherpa_onnx.OnlineModelConfig(
-                **model_config_kwargs,
-                provider=settings.sherpa_provider,
-            )
-        except TypeError:
-            model_config = sherpa_onnx.OnlineModelConfig(
-                **model_config_kwargs,
-                provider_config=sherpa_onnx.ProviderConfig(provider=settings.sherpa_provider),
-            )
-
-        recognizer_config = sherpa_onnx.OnlineRecognizerConfig(
-            feat_config=sherpa_onnx.FeatureExtractorConfig(sampling_rate=16000, feature_dim=80),
-            model_config=model_config,
-            endpoint_config=sherpa_onnx.EndpointConfig(
-                rule1=sherpa_onnx.EndpointRule(
-                    must_contain_nonsilence=False,
-                    min_trailing_silence=2.4,
-                    min_utterance_length=0,
-                ),
-                rule2=sherpa_onnx.EndpointRule(
-                    must_contain_nonsilence=True,
-                    min_trailing_silence=1.2,
-                    min_utterance_length=0,
-                ),
-                rule3=sherpa_onnx.EndpointRule(
-                    must_contain_nonsilence=False,
-                    min_trailing_silence=0,
-                    min_utterance_length=20,
-                ),
-            ),
-            enable_endpoint=True,
+        self.recognizer = sherpa_onnx.OnlineRecognizer.from_zipformer2_ctc(
+            tokens=str(tokens),
+            model=str(model_file),
+            num_threads=settings.sherpa_num_threads,
+            sample_rate=16000,
+            feature_dim=80,
+            enable_endpoint_detection=True,
+            rule1_min_trailing_silence=2.4,
+            rule2_min_trailing_silence=1.2,
+            rule3_min_utterance_length=20,
             decoding_method="greedy_search",
+            provider=settings.sherpa_provider,
+            debug=False,
         )
-        self.recognizer = sherpa_onnx.OnlineRecognizer(recognizer_config)
         self.stream = self.recognizer.create_stream()
         self.ready = True
         self.status = f"loaded:{model_dir.name}"
