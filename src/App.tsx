@@ -45,6 +45,7 @@ function App() {
   const [status, setStatus] = useState("准备就绪");
   const [audioLevel, setAudioLevel] = useState(0);
   const [exporting, setExporting] = useState(false);
+  const [recordingError, setRecordingError] = useState("");
   const recorderRef = useRef<RecorderRefs>(emptyRefs);
 
   const activeChapter = useMemo(
@@ -125,61 +126,103 @@ function App() {
     setChapters((current) => current.map((chapter) => (chapter.id === updated.id ? { ...chapter, ...updated } : chapter)));
   };
 
+  const describeRecordingError = (error: unknown): string => {
+    const name = error instanceof DOMException ? error.name : "";
+    if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+      return "麦克风权限被拒绝。请在浏览器或系统设置里允许麦克风后重试。";
+    }
+    if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+      return "没有检测到可用麦克风。请确认系统输入设备，或用 Chrome 打开本地地址测试。";
+    }
+    if (name === "NotReadableError" || name === "TrackStartError") {
+      return "麦克风正被其他应用占用，关闭占用录音的应用后再试。";
+    }
+    if (name === "SecurityError" || name === "TypeError") {
+      return "当前浏览器环境不能访问麦克风，请使用 http://127.0.0.1:3001 或 Chrome 打开。";
+    }
+    return `录音启动失败：${error instanceof Error ? error.message : "未知错误"}`;
+  };
+
+  const requestMicrophone = async (): Promise<MediaStream> => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new DOMException("mediaDevices.getUserMedia is unavailable", "SecurityError");
+    }
+    try {
+      return await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true
+        }
+      });
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "NotAllowedError") {
+        throw error;
+      }
+      return navigator.mediaDevices.getUserMedia({ audio: true });
+    }
+  };
+
   const startRecording = async () => {
     if (!activeChapter || recording) {
       return;
     }
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        channelCount: 1
-      }
-    });
-    const audioContext = new AudioContext();
-    await audioContext.audioWorklet.addModule("/pcm-worklet.js");
+    let stream: MediaStream | undefined;
+    try {
+      setRecordingError("");
+      setStatus("正在请求麦克风权限");
+      stream = await requestMicrophone();
+      const audioContext = new AudioContext();
+      await audioContext.audioWorklet.addModule("/pcm-worklet.js");
 
-    const socket = new WebSocket(`${wsBase}/ws/asr`);
-    socket.binaryType = "arraybuffer";
-    socket.onopen = () => {
-      socket.send(JSON.stringify({ type: "start", chapterId: activeChapter.id }));
-      setStatus("正在收音");
-    };
-    socket.onmessage = (event) => {
-      const payload = JSON.parse(event.data) as WsMessage;
-      if (payload.type === "status") {
-        setStatus(payload.message);
-      }
-      if (payload.type === "partial") {
-        setPartial(payload.text);
-      }
-      if (payload.type === "segment") {
-        upsertSegment(payload.segment);
-        setPartial("");
-      }
-    };
-    socket.onerror = () => setStatus("连接本地识别服务失败");
-    socket.onclose = () => {
+      const socket = new WebSocket(`${wsBase}/ws/asr`);
+      socket.binaryType = "arraybuffer";
+      socket.onopen = () => {
+        socket.send(JSON.stringify({ type: "start", chapterId: activeChapter.id }));
+        setStatus("正在收音");
+      };
+      socket.onmessage = (event) => {
+        const payload = JSON.parse(event.data) as WsMessage;
+        if (payload.type === "status") {
+          setStatus(payload.message);
+        }
+        if (payload.type === "partial") {
+          setPartial(payload.text);
+        }
+        if (payload.type === "segment") {
+          upsertSegment(payload.segment);
+          setPartial("");
+        }
+      };
+      socket.onerror = () => setStatus("连接本地识别服务失败");
+      socket.onclose = () => {
+        setRecording(false);
+        setStatus((current) => (current === "正在收音" ? "已暂停" : current));
+      };
+
+      const source = audioContext.createMediaStreamSource(stream);
+      const node = new AudioWorkletNode(audioContext, "pcm-recorder");
+      const mute = audioContext.createGain();
+      mute.gain.value = 0;
+      node.port.onmessage = (event: MessageEvent<{ type: string; buffer: ArrayBuffer; level: number }>) => {
+        setAudioLevel(event.data.level);
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(event.data.buffer);
+        }
+      };
+      source.connect(node);
+      node.connect(mute);
+      mute.connect(audioContext.destination);
+      recorderRef.current = { audioContext, mediaStream: stream, source, node, mute, socket };
+      setPartial("");
+      setRecording(true);
+    } catch (error) {
+      stream?.getTracks().forEach((track) => track.stop());
+      cleanupRecorder();
       setRecording(false);
-      setStatus((current) => (current === "正在收音" ? "已暂停" : current));
-    };
-
-    const source = audioContext.createMediaStreamSource(stream);
-    const node = new AudioWorkletNode(audioContext, "pcm-recorder");
-    const mute = audioContext.createGain();
-    mute.gain.value = 0;
-    node.port.onmessage = (event: MessageEvent<{ type: string; buffer: ArrayBuffer; level: number }>) => {
-      setAudioLevel(event.data.level);
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.send(event.data.buffer);
-      }
-    };
-    source.connect(node);
-    node.connect(mute);
-    mute.connect(audioContext.destination);
-    recorderRef.current = { audioContext, mediaStream: stream, source, node, mute, socket };
-    setPartial("");
-    setRecording(true);
+      const message = describeRecordingError(error);
+      setStatus(message);
+      setRecordingError(message);
+    }
   };
 
   const commitCurrentSegment = () => {
@@ -318,7 +361,9 @@ function App() {
             </div>
           </div>
           <div className="partialText">
-            {partial || (recording ? "正在等待说话..." : "点击开始录音后，这里会像输入法一样显示实时转写。")}
+            {recordingError ||
+              partial ||
+              (recording ? "正在等待说话..." : "点击开始录音后，这里会像输入法一样显示实时转写。")}
           </div>
         </section>
 
